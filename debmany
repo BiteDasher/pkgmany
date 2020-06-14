@@ -47,10 +47,10 @@ EOF
 [ -f "$sync_path/registry" ] && { echo -e "Database cloned. Use \e[1;32mdebmany -u\e[0m to update" ; exit 3 ; }
 tch_db
 cd $sync_path && git clone -b storage $many_syncurl || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
-touch $sync_path/registry; chmod 777 $sync_path/registry; echo -e "\e[1;32mSuccess!\e[0m"; rm_db
+touch $sync_path/registry; chmod 755 $sync_path/registry; echo -e "\e[1;32mSuccess!\e[0m"; rm_db
 ;;
 -u|--update)
-[ $(id -u) -ne 0 ] && { echo "This script must be run as root" ; exit 1 ; }
+[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
 tch_db
 cd $sync_path/$dirname && git pull --rebase origin storage || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
@@ -75,11 +75,12 @@ debmany -i $pkg2; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
 pkgmany
 sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
 eval $(source DEBBUILD; echo packagename="$debname";)
-[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename >> $sync_path/registry
+[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry
 rm_db
 ;;
 -ii|--addto-registry)
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
+[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
 tch_db
 [ ! "$(cat $sync_path/registry | grep -x $2)" ] && echo $2 >> $sync_path/registry || { echo -e "Package \e[1;33m$2\e[0m exists" ; rm_db ; exit 6 ; }
 rm_db
@@ -94,15 +95,16 @@ cat $sync_path/registry
 ;;
 -r|--remove)
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
-[ $(id -u) -eq 0 ] && { echo "This option must not be run as root" ; exit 1 ; }
+[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
 [ ! "$(apt-cache pkgnames | grep -x $2)" ] && { echo -e "Package \e[1;33m$2\e[0m not installed" ; exit 5 ; }
 tch_db
-sudo apt purge $2 || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
+apt purge $2 || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
 [ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry
 rm_db
 ;;
 -rr|--removefrom-registry)
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
+[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
 tch_db
 [ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry || { echo -e "Package \e[1;33m$2\e[0m not found" ; rm_db ; exit 6 ; }
 ;;
