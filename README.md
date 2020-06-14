@@ -14,7 +14,7 @@ You will need to rename it to ```DEBBUILD```**
 debmany --help
 ```
 
-# Hot to remove this?
+# How to remove this?
 ```
 ./install.sh remove || ./install.sh remove /usr/bin
 ```
