@@ -23,13 +23,13 @@ cd DEBIAN
 echo "Package: $debname" >> control
 echo "Version: $debver-$debrel" >> control
 echo "Architecture: $debarch" >> control
-[ "$debpri" ] && echo "Priority: $debprio" >> control
-[ "$debsec" ] && echo "Section: $debsection" >> control
+[ "$debpri" ] && echo "Priority: $debpri" >> control
+[ "$debsec" ] && echo "Section: $debsec" >> control
 [ "$debrec" ] && echo "Reccomends: $debrec" >> control
 [ "$debsug" ] && echo "Suggests: $debsug" >> control
 [ "$debcon" ] && echo "Conflicts: $debcon" >> control
-[ "$debbrk" ] && echo "Breaks: $debbreaks" >> control
-[ "$debprv" ] && echo "Provides: $debprov" >> control
+[ "$debbrk" ] && echo "Breaks: $debbrk" >> control
+[ "$debprv" ] && echo "Provides: $debprv" >> control
 [ "$debrep" ] && echo "Replaces: $debrep" >> control
 echo "Depends: $debdeps" >> control
 echo "Homepage: $url" >> control
