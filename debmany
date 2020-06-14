@@ -58,12 +58,20 @@ echo -e "\e[1;32mSuccess!\e[0m"; rm_db
 ;;
 -i|--install)
 [ $(id -u) -eq 0 ] && { echo "This option must not be run as root" ; exit 1 ; }
-tch_db
+[ ! "${__DEPS_INSTALL}" ] && tch_db
 [ ! -d "$build_path" ] && mkdir $build_path
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
 [ ! -f "$sync_path/$dirname/$2" ] && { echo -e "Package \e[1;33m$2\e[0m not exists" ; rm_db ; exit 5 ; }
 [ -d "$build_path/$2" ] && rm -rf $build_path/$2
 cd $build_path; mkdir $2; cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
+eval $(source DEBBUILD; [ "$manydeps" ] && echo "internal_deps=("${manydeps[@]}")";)
+if [ "$internal_deps" ]; then echo -e "\e[0;33mdebmany dependencies found:\e[0m ${internal_deps[@]}\nInstall them? [Y/n]"
+read -rp "> " manydeps_q
+case "$manydeps_q" in
+Y*|y*|"")
+__DEPS_INSTALL__=1
+for pkg2 in ${internal_deps[@]}; do
+debmany -i $pkg2; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
 pkgmany
 sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
 eval $(source DEBBUILD; echo packagename="$debname";)
@@ -120,6 +128,9 @@ mv -f $sync_path/registry /tmp/.registry
 rm -rf $sync_path/* $sync_path/.git
 cd $sync_path && git clone -b storage $many_syncurl || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; exit 4 ; }
 mv -f /tmp/.registry $sync_path/registry; chmod 777 $sync_path/registry; echo -e "\e[1;32mSuccess!\e[0m"
+;;
+-rdblock|--remove-database-lock)
+rm_db
 ;;
 *)
 echo "Unknown argument. Try debmany -h for help"; exit 1
