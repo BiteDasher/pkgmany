@@ -142,16 +142,20 @@ if ! [ "$(apt-cache pkgnames | grep -x ${pkg})" ]; then
 printf "\n$clre$pkg\e[1;31m not found$clre"; dependerrARRAY+=(${pkg})
 else echo $pkg >> .makedeps ; fi; done; fi
 if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ "$makedepends" ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
-###
-[ ! "$sourcemtd" ] && sourcemtd=wget
-printf "\n\e[1;32mDownloading sources using \e[0;36m$sourcemtd\e[1;32m...$clre\n"
-case $sourcemtd in
-wget) wget -P $srcdir/ $source -q --show-progress; checkerror ;;
-curl) cd $srcdir && curl -L -O --progress-bar $source; checkerror ;;
-git) cd $srcdir && git clone $source; checherror ;; esac
-cd $srcdir
-if [ "$sha256sum" ]; then printf "\n\e[1;32mChecking sha256sum...$clre"
-if [ "$(sha256sum $srcdir/* | cut -d" " -f1)" != $sha256sum ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi
+printf "\n\e[1;32mDownloading sources...$clre\n"
+for source_get in ${sources[@]}; do
+	source_get_mtd="$(echo $source_get | cut -d":" -f1)"
+	case "${source_get_mtd}" in
+	wget) wget -O $srcdir/$(echo $source_get | cut -d":" -f2) $(echo $source_get | cut -d":" -f3-) -q --show-progress; checkerror ;;
+	curl) cd $srcdir && curl -L -o $(echo $source_get | cut -d":" -f2) --progress-bar $(echo $source_get | cut -d":" -f3-); checkerror ;;
+	git) echo; cd $srcdir && git clone $(echo $source_get | cut -d":" -f3-) $(echo $source_get | cut -d":" -f2) 1>/dev/null; checkerror ;;
+	esac; done
+if [ "$sha256sums" ]; then printf "\n\e[1;32mChecking sha256sums...$clre"; fi
+for ssum in ${!sha256sums[*]}; do
+	if [ "${sha256sums[$ssum]}" == SKIP ]; then
+	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)... \e[1;33mskip$clre"; else
+	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)..."
+	if [ "$(sha256sum $srcdir/$(echo ${sources[$ssum]} | cut -d":" -f2) | cut -d" " -f1)" != ${sha256sums[$ssum]} ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi; done
 if [ "$debpkg" ]; then
 printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
 mv $srcdir/* $curdir/; checkerror; exit 0; fi

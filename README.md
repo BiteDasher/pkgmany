@@ -51,13 +51,12 @@ debcon -- Conflicts
 debbrk -- Breaks
 debprv -- Provides
 debrep -- Replaces
-source -- URL link to source file/directory
-sourcemtd -- Used program to download source (available: wget curl git) (default: wget)
 debpkg -- An indicator that to build the package it is enough to download the .deb from the official site
 srcdir -- Directory with downloaded source
 pkgdir -- Directory with future DEBIAN directory and binaries
-sha256sum -- sha256sum for checking hash of downloaded file
 ```
 ```
 makedepends=('one' 'two' 'three') -- dependencies for building package
+sha256sums=('754545...') -- sha256sum for checking hash of downloaded file
+sources=('wget:ascii.tgz:https://source.com/tar.rgz -- URL links to sources files/directories
 ``` 
