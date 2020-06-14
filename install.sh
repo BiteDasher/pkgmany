@@ -17,3 +17,4 @@ else
 	sudo install -m 755 pkgmany /usr/local/bin/pkgmany
 	sudo mkdir -p /usr/share/debmany
 fi
+sudo apt install coreutils bash sed gdebi git curl wget
