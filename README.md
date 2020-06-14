@@ -14,7 +14,7 @@ You will need to rename it to ```DEBBUILD```**
 debmany --help
 ```
 
-# Hot to remove this?
+# How to remove this?
 ```
 ./install.sh remove || ./install.sh remove /usr/bin
 ```
@@ -35,8 +35,8 @@ curl "or" wget
 Linux Mint 19.3 \
 Ubuntu 20.04
 
-## -- "I want to become an contributer"
-**Message me on Telegram (@heveat) and tell WHY you want to become an contributer**
+## -- "I want to become an contributor"
+**Message me on Telegram (@heveat) and tell WHY you want to become an contributor**
 
 # Attention
 This is only an alpha version of the script. There may be bugs, also, if this repository grows to a large scale, I will completely rewrite the code and call other people. But you can already help by writing me in Telegram. And yes, this script is not of the best quality, but I'm trying to make things easier with my knowledge. Thank you.
