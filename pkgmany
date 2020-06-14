@@ -1,0 +1,163 @@
+#!/bin/bash
+purge_makedepends() {
+if [ "$makedepends" ]; then
+printf "\n\e[1;33mRemove build dependencies?(They are not needed after building the package.)\e[0m [Y/n]"
+read -rp "> " mdquest
+case $mdquest in
+Y*|y*|"")
+sudo apt purge $(cat .makedeps | tr "\n" " ")
+rm .makedeps
+;;
+*)
+:
+;; esac; fi
+}
+unpack() {
+  tar -xf $srcdir/* -C $srcdir/
+}
+create_deb() {
+printf "\n\e[1;32mCreating .deb package...$clre"
+cd $pkgdir
+mkdir DEBIAN
+cd DEBIAN
+echo "Package: $debname" >> control
+echo "Version: $debver-$debrel" >> control
+echo "Architecture: $debarch" >> control
+[ "$debpri" ] && echo "Priority: $debprio" >> control
+[ "$debsec" ] && echo "Section: $debsection" >> control
+[ "$debrec" ] && echo "Reccomends: $debrec" >> control
+[ "$debsug" ] && echo "Suggests: $debsug" >> control
+[ "$debcon" ] && echo "Conflicts: $debcon" >> control
+[ "$debbrk" ] && echo "Breaks: $debbreaks" >> control
+[ "$debprv" ] && echo "Provides: $debprov" >> control
+[ "$debrep" ] && echo "Replaces: $debrep" >> control
+echo "Depends: $debdeps" >> control
+echo "Homepage: $url" >> control
+echo "Maintainer: $maintainer" >> control
+echo "Description: $debdesc" >> control
+[ "$debpostinst" ] && echo $debpostinst > postinst
+[ "$debprerm" ] && echo $debprerm > prerm
+[ "$debconffiles" ] && echo $debconffiles > conffiles
+cd .. && find . -type f ! -regex '.*.hg.*' ! -regex '.*?debian-binary.*' ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums; cd DEBIAN
+cat <<EOF > copyright
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: $debname
+Upstream-Contact: $maintainer
+Source: $source
+
+Files: *
+Copyright: $year $maintainer
+License: $license"
+EOF
+printf "  \e[0;32mok"
+printf "\n\e[1;33mBuilding \e[0;36m$debname$clre \e[1;33mpackage using dpkg-deb...$clre"
+cd $curdir
+dpkg-deb -b "$pkgdir" "$debname".deb; checkerror; printf "\n"
+}
+checkerror() {
+if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; exit 1; else
+printf " \e[0;32mok\e[0m"; fi
+}
+clre="\e[0m"
+trapcom() {
+echo -e "\033[1;31mInterrupt signal recieved."; exit 5
+}
+trap trapcom SIGTERM
+trap trapcom SIGINT
+if [ "$1" ]; then pkgmanyone=1; case $1 in
+-h|--help|help|w)
+cat <<EOF
+Usage: pkgmany [OPTION...] ...
+pkgmany: creates a .deb package based on the source code or just download it from the URL
+Examples:
+	pkgmany -h
+	pkgmany -po
+	pkgmany --package-only
+
+    Arguments:
+	-h  --help		print this message
+	-po --package-only	only build from sources
+	-u  --unpack		only unpack
+	-c  --create		only create .deb package
+	-a  --all		create .deb package and install it
+EOF
+;;
+-po|--package-only)
+[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
+source DEBBUILD
+curdir="$(pwd)"
+pkgdir="$(pwd)/${debname}"
+[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
+srcdir="$(pwd)/${debname}-source"
+[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
+package; checkerror
+;;
+-u|--unpack)
+[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
+source DEBBUILD
+curdir="$(pwd)"
+pkgdir="$(pwd)/${debname}"
+[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
+srcdir="$(pwd)/${debname}-source"
+[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
+unpack; checkerror
+;;
+-c|--create)
+[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
+source DEBBUILD
+curdir="$(pwd)"
+pkgdir="$(pwd)/${debname}"
+[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
+srcdir="$(pwd)/${debname}-source"
+[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
+rm -rf $pkgdir/*
+create_deb
+purge_makedepends
+;;
+-a|--all)
+unset pkgmanyone
+;; esac; fi
+[ "$pkgmanyone" ] && exit 0
+pkgmanyver=1.0
+echo -e "Starting pkgmany \e[0;36m$pkgmanyver$clre"
+[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
+source DEBBUILD
+curdir="$(pwd)"
+pkgdir="$(pwd)/${debname}"
+if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
+checkerror; fi
+mkdir $pkgdir
+srcdir="$(pwd)/${debname}-source"
+if [ -d "$srcdir" ]; then printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"; rm -rf $srcdir
+checkerror; fi
+mkdir $srcdir
+[ -f *.deb ] && { printf "\n\e[1;32mMoving .deb in .backup$clre" ; [ -d .backup ] && rm -rf .backup; mkdir .backup ; mv *.deb .backup/ ; checkerror ; }
+###
+if [ "$makedepends" ]; then
+printf "\n\e[1;32mFound \e[0;36m\$makedepends\e[1;32m. Checking...$clre\n"
+dependerrARRAY=()
+rm -f .makedeps
+for pkg in ${makedepends[@]}; do
+if ! [ "$(apt-cache pkgnames | grep -x ${pkg})" ]; then
+printf "\n$clre$pkg\e[1;31m not found$clre"; dependerrARRAY+=(${pkg})
+else echo $pkg >> .makedeps ; fi; done; fi
+if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ "$makedepends" ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
+###
+[ ! "$sourcemtd" ] && sourcemtd=wget
+printf "\n\e[1;32mDownloading sources using \e[0;36m$sourcemtd\e[1;32m...$clre\n"
+case $sourcemtd in
+wget) wget -P $srcdir/ $source -q --show-progress; checkerror ;;
+curl) cd $srcdir && curl -L -O --progress-bar $source; checkerror ;;
+git) cd $srcdir && git clone $source; checherror ;; esac
+cd $srcdir
+if [ "$sha256sum" ]; then printf "\n\e[1;32mChecking sha256sum...$clre"
+if [ "$(sha256sum $srcdir/* | cut -d" " -f1)" != $sha256sum ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi
+if [ "$debpkg" ]; then
+printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
+mv $srcdir/* $curdir/; checkerror; exit 0; fi
+printf "\n\e[1;32mUnpacking sources..$clre."
+unpack; checkerror
+printf "\n\e[1;32mBuilding...$clre"
+package; checkerror
+create_deb
+purge_makedepends
