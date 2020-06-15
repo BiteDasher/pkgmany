@@ -42,11 +42,11 @@ cd .. && find . -type f ! -regex '.*.hg.*' ! -regex '.*?debian-binary.*' ! -rege
 cat <<EOF > copyright
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: $debname
-Upstream-Contact: $maintainer
+Upstream-Contact: $author
 Source: ${sources[1]}
 
 Files: *
-Copyright: $year $maintainer
+Copyright: $year $author
 License: $license
 EOF
 printf "  \e[0;32mok"

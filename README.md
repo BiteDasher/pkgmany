@@ -43,6 +43,9 @@ This is only an alpha version of the script. There may be bugs, also, if this re
 
 # Variables:
 ```
+maintainer -- package maintainer
+author -- author of package
+year -- copyright year
 debpri -- Priority
 debsec -- Section
 debrec -- Reccomend
