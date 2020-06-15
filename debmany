@@ -71,7 +71,8 @@ case "$manydeps_q" in
 Y*|y*|"")
 __DEPS_INSTALL__=1
 for pkg2 in ${internal_deps[@]}; do
-debmany -i $pkg2; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
+if [ "$(cat $sync_path/registry | grep -x $pkg2)" ]; then : ; else
+debmany -i $pkg2; fi; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
 pkgmany
 sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
 eval $(source DEBBUILD; echo packagename="$debname";)
