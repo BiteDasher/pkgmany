@@ -87,8 +87,6 @@ EOF
 -po|--package-only)
 [ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
 source DEBBUILD
-if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
-debver="$(newver)"; fi
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
 [ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
@@ -99,8 +97,6 @@ package; checkerror
 -u|--unpack)
 [ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
 source DEBBUILD
-if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
-debver="$(newver)"; fi
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
 [ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
@@ -111,8 +107,6 @@ unpack; checkerror
 -c|--create)
 [ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
 source DEBBUILD
-if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
-debver="$(newver)"; fi
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
 [ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
@@ -130,8 +124,6 @@ pkgmanyver=1.0
 echo -e "Starting pkgmany \e[0;36m$pkgmanyver$clre"
 [ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
 source DEBBUILD
-if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
-debver="$(newver)"; fi
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
 if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
@@ -154,6 +146,7 @@ else
 [ ! "$(apt-mark showmanual | grep -x $pkg)" ] && echo $pkg >> .makedeps ; fi; done; fi
 if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ -f .makedeps ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
 printf "\n\e[1;32mDownloading sources...$clre\n"
+echo $debver
 for source_get in ${sources[@]}; do
 	source_get_mtd="$(echo $source_get | cut -d":" -f1)"
 	case "${source_get_mtd}" in
