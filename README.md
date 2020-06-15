@@ -2,7 +2,7 @@
 Creates a .deb package based on the source code or just download it from the URL
 
 ## -- "I want to offer X package for packaging"
-**In order to do this, go to the tab "Issues" and create a new one with the title "[Package offer]" at the beginning**
+**To do this, go to the tab "Issues" and create a new one with the title "[Package offer]" at the beginning**
 
 ## -- "Where can I find example of DEBBUILD?"
 **file ```example.debbuild``` \
