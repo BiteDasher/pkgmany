@@ -65,7 +65,7 @@ echo -e "\e[1;32mSuccess!\e[0m"; rm_db
 -i|--install)
 [ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
 [ ! "${__DEPS_INSTALL__}" ] && tch_db
-[ ! -d "$build_path" ] && mkdir $build_path
+[ ! -d "$build_path" ] && mkdir -p  $build_path
 [ ! -f "$sync_path/$dirname/$2" ] && { echo -e "Package \e[1;33m$2\e[0m not exists" ; rm_db ; exit 5 ; }
 [ -d "$build_path/$2" ] && rm -rf $build_path/$2
 cd $build_path; mkdir $2; cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
