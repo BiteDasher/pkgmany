@@ -47,7 +47,7 @@ Source: $(echo ${sources[0]} | cut -d":" -f3-)
 
 Files: *
 Copyright: $year $author
-License: $license
+License: "${license}"
 EOF
 printf "  \e[0;32mok"
 printf "\n\e[1;33mBuilding \e[0;36m$debname$clre \e[1;33mpackage using dpkg-deb...$clre"
