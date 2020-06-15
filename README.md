@@ -67,3 +67,15 @@ sha256sums=('754545...') -- sha256sum for checking hash of downloaded file
 sources=('wget:ascii.tgz:https://source.com/tar.rgz -- URL links to sources files/directories
 manydeps=('wifiman') -- dependencies from pkgmany-storage repository
 ``` 
+
+## Exit codes:
+1 - Script executed as root but shouldn't and vise versa \
+2 - nothing \
+3 - Database cloned but not updated / database not cloned \
+4 - Something went wrong \
+5 - Package not installed \
+6 - Package not found \
+7 - Nothing to check for updates \
+8 - Interrupt signal recieved \
+9 - debmany already running
+
