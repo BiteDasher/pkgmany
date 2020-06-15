@@ -4,9 +4,12 @@ Creates a .deb package based on the source code or just download it from the URL
 ## -- "I want to offer X package for packaging"
 **In order to do this, go to the tab "Issues" and create a new one with the title "[Package offer]" at the beginning**
 
-## -- "Where can I found example of DEBBUILD?"
+## -- "Where can I find example of DEBBUILD?"
 **file ```example.debbuild``` \
 You will need to rename it to ```DEBBUILD```**
+
+## -- "Where can I find a detailed DEBBUILD writing guide?"
+**see Wiki page**
 
 # How to install and use this?
 ```
