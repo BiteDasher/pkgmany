@@ -145,6 +145,6 @@ mv -f /tmp/.registry $sync_path/registry; chmod 777 $sync_path/registry; echo -e
 rm_db
 ;;
 *)
-echo "Unknown argument. Try debmany -h for help"; exit 1
+echo "Unknown argument. Try debmany -h for help"; exit 2
 ;;
 esac

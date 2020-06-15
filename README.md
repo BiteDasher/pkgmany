@@ -70,7 +70,7 @@ manydeps=('wifiman') -- dependencies from pkgmany-storage repository
 
 ## Exit codes:
 1 - Script executed as root but shouldn't and vise versa \
-2 - nothing \
+2 - Unknown argument
 3 - Database cloned but not updated / database not cloned \
 4 - Something went wrong \
 5 - Package not installed \
