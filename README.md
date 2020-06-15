@@ -1,15 +1,15 @@
 # pkgmany / debmany
-Creates a .deb package based on the source code or just download it from the URL
+Creates a .deb package based on the source code or just downloads it from the URL
 
 ## -- "I want to offer X package for packaging"
-**To do this, go to the tab "Issues" and create a new one with the title "[Package offer]" at the beginning**
+**To do this, go to "Issues" tab and create an issue with the title starting with "[Package offer]"**
 
-## -- "Where can I find example of DEBBUILD?"
+## -- "Where can I find example of a DEBBUILD?"
 **file ```example.debbuild``` \
 You will need to rename it to ```DEBBUILD```**
 
 ## -- "Where can I find a detailed DEBBUILD writing guide?"
-**see [Wiki](https://github.com/BiteDasher/pkgmany/wiki/Writing-DEBBUILD) page**
+**see the [Wiki page](https://github.com/BiteDasher/pkgmany/wiki)**
 
 # How to install and use this?
 ```
@@ -42,7 +42,7 @@ Ubuntu 20.04
 **Message me on Telegram (@heveat) and tell WHY you want to become an contributor**
 
 # Attention
-This is only an alpha version of the script. There may be bugs, also, if this repository grows to a large scale, I will completely rewrite the code and call other people. But you can already help by writing me in Telegram. And yes, this script is not of the best quality, but I'm trying to make things easier with my knowledge. Thank you.
+This script is in early alpha. There may be some bugs. Also, if this project grows large, I will completely rewrite the code and invite other developers. But you can already help by messaging me in Telegram. And yes, this script is not of the best quality, but I'm trying to make things easier with my knowledge. Thank you.
 
 # Variables:
 ```
