@@ -49,6 +49,7 @@ This script is in early alpha. There may be some bugs. Also, if this project gro
 maintainer -- package maintainer
 author -- author of package
 year -- copyright year
+url -- package official website
 debpri -- Priority
 debsec -- Section
 debrec -- Reccomend
