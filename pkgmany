@@ -146,7 +146,6 @@ else
 [ ! "$(apt-mark showmanual | grep -x $pkg)" ] && echo $pkg >> .makedeps ; fi; done; fi
 if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ -f .makedeps ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
 printf "\n\e[1;32mDownloading sources...$clre\n"
-echo $debver
 for source_get in ${sources[@]}; do
 	source_get_mtd="$(echo $source_get | cut -d":" -f1)"
 	case "${source_get_mtd}" in
