@@ -21,7 +21,9 @@ cd $pkgdir
 mkdir DEBIAN
 cd DEBIAN
 echo "Package: $debname" >> control
-echo "Version: $debver-$debrel" >> control
+if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
+echo "Version: "$(newver)"-$debrel" >> control; else
+echo "Version: $debver-$debrel" >> control; fi
 echo "Architecture: $debarch" >> control
 [ "$debpri" ] && echo "Priority: $debpri" >> control
 [ "$debsec" ] && echo "Section: $debsec" >> control
