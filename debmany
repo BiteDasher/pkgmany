@@ -52,7 +52,7 @@ cd $sync_path && git clone -b storage $many_syncurl || { echo -e "\e[0;31mSometh
 touch $sync_path/registry; chmod 755 $sync_path/registry; echo -e "\e[1;32mSuccess!\e[0m"; rm_db
 ;;
 -cc|--clean-cache)
-[ -f "$sync_path/registry" ] && { echo -e "Database cloned. Use \e[1;32mdebmany -u\e[0m to update" ; exit 3 ; }
+[ -z "$(ls $sync_path)" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
 rm -rf $build_path/*
 ;;
 -u|--update)
@@ -74,7 +74,7 @@ if [ "$internal_deps" ]; then echo -e "\e[0;33mdebmany dependencies found:\e[0m 
 read -rp "> " manydeps_q
 case "$manydeps_q" in
 Y*|y*|"")
-__DEPS_INSTALL__=1
+export __DEPS_INSTALL__=1
 for pkg2 in ${internal_deps[@]}; do
 if [ "$(cat $sync_path/registry | grep -x $pkg2)" ]; then : ; else
 debmany -i $pkg2; fi; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
