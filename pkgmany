@@ -35,9 +35,9 @@ echo "Depends: $debdeps" >> control
 echo "Homepage: $url" >> control
 echo "Maintainer: $maintainer" >> control
 echo "Description: $debdesc" >> control
-[ "$debpostinst" ] && echo $debpostinst > postinst
-[ "$debprerm" ] && echo $debprerm > prerm
-[ "$debconffiles" ] && echo $debconffiles > conffiles
+[ "$debpostinst" ] && echo "$debpostinst" > postinst
+[ "$debprerm" ] && echo "$debprerm" > prerm
+[ "$debconffiles" ] && echo "$debconffiles" > conffiles
 cd .. && find . -type f ! -regex '.*.hg.*' ! -regex '.*?debian-binary.*' ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums; cd DEBIAN
 cat <<EOF > copyright
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
