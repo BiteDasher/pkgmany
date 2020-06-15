@@ -9,7 +9,7 @@ Creates a .deb package based on the source code or just downloads it from the UR
 You will need to rename it to ```DEBBUILD```**
 
 ## -- "Where can I find a detailed DEBBUILD writing guide?"
-**see the [Wiki page](https://github.com/BiteDasher/pkgmany/wiki)**
+**See the [Wiki page](https://github.com/BiteDasher/pkgmany/wiki)**
 
 # How to install and use this?
 ```
