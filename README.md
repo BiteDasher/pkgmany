@@ -62,6 +62,8 @@ debpkg -- An indicator that to build the package it is enough to download the .d
 srcdir -- Directory with downloaded source
 pkgdir -- Directory with future DEBIAN directory and binaries
 ```
+
+# Arrays:
 ```
 makedepends=('one' 'two' 'three') -- dependencies for building package
 sha256sums=('754545...') -- sha256sum for checking hash of downloaded file
