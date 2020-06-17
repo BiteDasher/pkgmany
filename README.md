@@ -67,7 +67,7 @@ pkgdir -- Directory with future DEBIAN directory and binaries
 ```
 makedepends=('one' 'two' 'three') -- dependencies for building package
 sha256sums=('754545...') -- sha256sum for checking hash of downloaded file
-sources=('wget:ascii.tgz:https://source.com/tar.rgz -- URL links to sources files/directories
+sources=('wget:ascii.tgz:https://source.com/tar.tgz -- URL links to sources files/directories
 manydeps=('wifiman') -- dependencies from pkgmany-storage repository
 ``` 
 
