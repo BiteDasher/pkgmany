@@ -129,7 +129,7 @@ version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)
 if [ "$version1" != "$version2" ]; then
 echo "$pkg $version2 --> $version1" > /tmp/.debmany
 fi
-if [ -z "$(cat /tmp/.debmany)" ]; then echo "Nothing to update."; rm_db; else
+if [ -z "$(cat /tmp/.debmany)" ]; then echo "Nothing to update."; rm_db; exit 0; else
 cat /tmp/.debmany; fi; done; rm_db
 ;;
 -redb|--recreate-database)
