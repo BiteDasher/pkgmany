@@ -128,9 +128,9 @@ eval $(source $sync_path/$dirname/$pkg; echo version1="$debver-$debrel";)
 version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
 if [ "$version1" != "$version2" ]; then
 echo "$pkg $version2 --> $version1" > /tmp/.debmany
-fi
-if [ -z "$(cat /tmp/.debmany)" ]; then echo "Nothing to update."; rm_db; exit 0; else
-cat /tmp/.debmany; fi; done; rm_db
+fi; done
+if [ -z "$(cat /tmp/.debmany)" ]; then echo "Nothing to update."; rm_db; else
+cat /tmp/.debmany; fi; rm_db
 ;;
 -redb|--recreate-database)
 [ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
