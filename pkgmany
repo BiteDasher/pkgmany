@@ -97,7 +97,7 @@ pkgdir="$(pwd)/${debname}"
 [ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
 srcdir="$(pwd)/${debname}-source"
 [ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
-checkaddfiles; package; checkerror
+checkaddfiles; checkerror; package; checkerror
 ;;
 -u|--unpack)
 [ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
@@ -170,7 +170,7 @@ mv $srcdir/* $curdir/; checkerror; exit 0; fi
 printf "\n\e[1;32mUnpacking sources..$clre."
 unpack; checkerror
 printf "\n\e[1;32mBuilding...$clre"
-checkaddfiles
+checkaddfiles; checkerror
 package; checkerror
 create_deb
 purge_makedepends
