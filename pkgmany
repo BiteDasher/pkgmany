@@ -131,11 +131,11 @@ echo -e "Starting pkgmany \e[0;36m$pkgmanyver$clre"
 source DEBBUILD
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
-if [ -f "$(pwd)/.sources_exists" ]; then
-printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"; else
 if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
 checkerror; fi
 mkdir $pkgdir
+if [ -f "$(pwd)/.sources_exists" ]; then
+printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"; else
 srcdir="$(pwd)/${debname}-source"
 if [ -d "$srcdir" ]; then printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"; rm -rf $srcdir
 checkerror; fi
