@@ -115,8 +115,8 @@ rm_db
 ;;
 -rs|--remove-sources)
 [ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-rm -rf $build_dir/*/.sources_exists
-rm -rf $build_dir/*/*-source
+rm -rf $build_path/*/.sources_exists
+rm -rf $build_path/*/*-source
 ;;
 -u|--update)
 [ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
