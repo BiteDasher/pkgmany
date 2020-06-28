@@ -134,9 +134,9 @@ pkgdir="$(pwd)/${debname}"
 if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
 checkerror; fi
 mkdir $pkgdir
+srcdir="$(pwd)/${debname}-source"
 if [ -f "$(pwd)/.sources_exists" ]; then
 printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"; else
-srcdir="$(pwd)/${debname}-source"
 if [ -d "$srcdir" ]; then printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"; rm -rf $srcdir
 checkerror; fi
 mkdir $srcdir; fi
@@ -170,12 +170,12 @@ for ssum in ${!sha256sums[*]}; do
 if [ "$debpkg" ]; then
 printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
 mv $srcdir/* $curdir/; checkerror; exit 0; fi
-if ! [ -f "$(pwd)/.sources_exists" ]; then
+if ! [ -f "$curdir/.sources_exists" ]; then
 printf "\n\e[1;32mUnpacking sources..$clre."
 unpack; checkerror; fi
 printf "\n\e[1;32mBuilding...$clre"
-if ! [ -f "$(pwd)/.sources_exists" ]; then checkaddfiles; checkerror; fi
-touch .sources_exists
+if ! [ -f "$curdir/.sources_exists" ]; then checkaddfiles; checkerror; fi
+touch $curdir/.sources_exists
 package; checkerror
 create_deb
 purge_makedepends
