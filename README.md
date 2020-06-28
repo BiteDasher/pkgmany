@@ -22,6 +22,10 @@ debmany --help
 ./install.sh remove || ./install.sh remove /usr/bin
 ```
 
+# When building the package for the second time, errors occur. I need to download the source again. What to do?
+if `debmany`, use `debmany -rs` \
+if `pkgmany`, use `rm .sources_exists` in current directory with DEBBUILD
+
 ## Dependencies:
 ```
 coreutils

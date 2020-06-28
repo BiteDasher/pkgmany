@@ -38,6 +38,7 @@ Examples:
 	-rl --registry-list		  list all locally installed packages(from registry)
 	-r  --remove PKGNAME		  remove local package
 	-rr --removefrom-registry PKGNAME force remove package from registry
+	-rs --remove-sources		  remove downloaded sources as cache of packages
 	-redb --recreate-database	  (DO ONLY WHEN YOU KNOW WHY) Force recreate of database
 	-rdblock --remove-database-lock   (DO ONLY WHEN YOU KNOW WHY) Force remove of .dblock file
 	-h --help			  show this message
@@ -111,6 +112,11 @@ rm_db
 tch_db
 [ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry || { echo -e "Package \e[1;33m$2\e[0m not found" ; rm_db ; exit 6 ; }
 rm_db
+;;
+-rs|--remove-sources)
+[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
+rm -rf $build_dir/*/.sources_exists
+rm -rf $build_dir/*/*-source
 ;;
 -u|--update)
 [ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
