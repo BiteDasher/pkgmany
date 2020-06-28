@@ -173,9 +173,9 @@ mv $srcdir/* $curdir/; checkerror; exit 0; fi
 if ! [ -f "$(pwd)/.sources_exists" ]; then
 printf "\n\e[1;32mUnpacking sources..$clre."
 unpack; checkerror; fi
-touch .sources_exists
 printf "\n\e[1;32mBuilding...$clre"
 if ! [ -f "$(pwd)/.sources_exists" ]; then checkaddfiles; checkerror; fi
+touch .sources_exists
 package; checkerror
 create_deb
 purge_makedepends
