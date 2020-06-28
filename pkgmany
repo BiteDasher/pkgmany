@@ -131,13 +131,15 @@ echo -e "Starting pkgmany \e[0;36m$pkgmanyver$clre"
 source DEBBUILD
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
+if [ -f "$(pwd)/.sources_exists" ]; then
+printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"; else
 if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
 checkerror; fi
 mkdir $pkgdir
 srcdir="$(pwd)/${debname}-source"
 if [ -d "$srcdir" ]; then printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"; rm -rf $srcdir
 checkerror; fi
-mkdir $srcdir
+mkdir $srcdir; fi
 [ -f *.deb ] && { printf "\n\e[1;32mMoving .deb in .backup$clre" ; [ -d .backup ] && rm -rf .backup; mkdir .backup ; mv *.deb .backup/ ; checkerror ; }
 ###
 if [ "$makedepends" ]; then
@@ -150,6 +152,7 @@ printf "\n$clre$pkg\e[1;31m not found$clre"; dependerrARRAY+=(${pkg})
 else 
 [ ! "$(apt-mark showmanual | grep -x $pkg)" ] && echo $pkg >> .makedeps ; fi; done; fi
 if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ -f .makedeps ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
+if ! [ -f "$(pwd)/.sources_exists" ]; then
 printf "\n\e[1;32mDownloading sources...$clre\n"
 for source_get in ${sources[@]}; do
 	source_get_mtd="$(echo $source_get | cut -d":" -f1)"
@@ -163,14 +166,17 @@ for ssum in ${!sha256sums[*]}; do
 	if [ "${sha256sums[$ssum]}" == SKIP ]; then
 	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)... \e[1;33mskip$clre"; else
 	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)..."
-	if [ "$(sha256sum $srcdir/$(echo ${sources[$ssum]} | cut -d":" -f2) | cut -d" " -f1)" != ${sha256sums[$ssum]} ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi; done
+	if [ "$(sha256sum $srcdir/$(echo ${sources[$ssum]} | cut -d":" -f2) | cut -d" " -f1)" != ${sha256sums[$ssum]} ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi; done; fi
 if [ "$debpkg" ]; then
 printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
 mv $srcdir/* $curdir/; checkerror; exit 0; fi
+if ! [ -f "$(pwd)/.sources_exists" ]; then
 printf "\n\e[1;32mUnpacking sources..$clre."
-unpack; checkerror
+unpack; checkerror; fi
+touch .sources_exists
 printf "\n\e[1;32mBuilding...$clre"
-checkaddfiles; checkerror
+if ! [ -f "$(pwd)/.sources_exists" ]; then checkaddfiles; checkerror; fi
 package; checkerror
 create_deb
 purge_makedepends
+rm .sources_exists
