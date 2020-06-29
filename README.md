@@ -39,7 +39,7 @@ curl "or" wget
 ```
 
 ## Target distros:
-Linux Mint 19.3 \
+Linux Mint 20 \
 Ubuntu 20.04
 
 ## -- "I want to become an contributor"
