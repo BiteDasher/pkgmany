@@ -174,7 +174,7 @@ if ! [ -f "$curdir/.sources_exists" ]; then
 printf "\n\e[1;32mUnpacking sources..$clre."
 unpack; checkerror; fi
 printf "\n\e[1;32mBuilding...$clre"
-if ! [ -f "$curdir/.sources_exists" ]; then checkaddfiles; checkerror; fi
+if [ -f "$curdir/.sources_exists" ]; then [ -n "$(ls $curdir -I DEBBUILD -I ${debname} -I ${debname}-source)" ] && rm $(ls $curdir -I DEBBUILD -I ${debname}-source -I ${debname}); checkaddfiles; checkerror; else checkaddfiles; checkerror; fi
 touch $curdir/.sources_exists
 package; checkerror
 create_deb
