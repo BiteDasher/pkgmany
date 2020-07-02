@@ -81,7 +81,8 @@ sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ;
 eval $(source DEBBUILD; echo debname="$debname"; echo _rev="$_rev";); if [ -z "${_rev}" ]; then packagename="${debname}-${_rev}"; else packagename="${debname}"; fi
 if ! [ "$(apt-cache pkgnames | grep -x $packagename)" ]; then
 echo -e "\n\e[0;31mSomething went wrong. Package not installed.\e[0m" ; rm_db ; exit 4; else
-[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry
+[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &>/dev/null
+[ -z "${_rev}" ] && echo -e "\e[1m! ${debname} installed as ${packagename}$clre"
 rm_db; fi
 ;;
 -ii|--addto-registry)
