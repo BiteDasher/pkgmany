@@ -1,6 +1,6 @@
 #!/bin/bash
 purge_makedepends() {
-if [ -f .makedeps ]; then
+if [ -f ${curdir}/.makedeps ]; then
 printf "\n\e[1;33mRemove build dependencies?(They are not needed after building the package.)\e[0m [Y/n]"
 read -rp "> " mdquest
 case $mdquest in
@@ -181,4 +181,4 @@ touch $curdir/.sources_exists
 package; checkerror
 create_deb
 purge_makedepends
-rm .sources_exists
+rm $curdir/.sources_exists
