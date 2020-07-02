@@ -27,6 +27,7 @@ mkdir DEBIAN
 cd DEBIAN
 if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
 debver="$(newver)"; fi
+if [ "${_rev}" ]; then debname="${debname}-${_rev}"; fi
 echo "Package: $debname" >> control
 echo "Version: $debver-$debrel" >> control
 echo "Architecture: $debarch" >> control
