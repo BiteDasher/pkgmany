@@ -82,7 +82,7 @@ eval $(source DEBBUILD; echo debname="$debname"; echo _rev="$_rev";); if [ -n "$
 if ! [ "$(apt-cache pkgnames | grep -x $packagename)" ]; then
 echo -e "\n\e[0;31mSomething went wrong. Package not installed.\e[0m" ; rm_db ; exit 4; else
 [ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &>/dev/null
-if [ -z "$(cat $sync_path/registry | grep -x $packagename)" ]; then [ -n "${_rev}" ] && echo -e "\e[1m! ${debname} installed as ${packagename}$clre"; fi
+if [ -z "$(cat $sync_path/registry | grep -x $packagename)" ]; then if [ -n "${_rev}" ]; then [ "$2" != "$packagename" ] && echo -e "\e[1m! ${2} installed as ${packagename}$clre"; fi; fi
 rm_db; fi
 ;;
 -ii|--addto-registry)
