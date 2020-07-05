@@ -1,7 +1,7 @@
 # pkgmany / debmany
 Creates a .deb package based on the source code or just downloads it from the URL
 
-## -- "I want to offer X package for packaging"
+## -- "I want to offer \<name here\> program for packaging"
 **To do this, go to "Issues" tab and create an issue with the title starting with "[Package offer]"**
 
 ## -- "Where can I find example of a DEBBUILD?"
