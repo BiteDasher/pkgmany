@@ -122,14 +122,14 @@ rm -rf $build_path/*/.sources_exists
 rm -rf $build_path/*/*-source
 ;;
 -u|--update)
+[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
 [ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
 [ -z "$(cat $sync_path/registry)" ] && { echo "Nothing to check" ; exit 7 ; }
 tch_db
 rm -f /tmp/.debmany
-chmod 777 /tmp/.debmany
 touch /tmp/.debmany
 for pkg in $(cat $sync_path/registry); do
-eval $(source $sync_path/$dirname/$pkg; [ ! "$debrel" ] && echo debrel=1; echo version1="$debver-$debrel";)
+eval $(source $sync_path/$dirname/$pkg; [ ! "$debrel" ] && debrel=1; echo version1="$debver-$debrel";)
 version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
 if [ "$version1" != "$version2" ]; then
 echo "$pkg $version2 --> $version1" > /tmp/.debmany
