@@ -81,8 +81,8 @@ sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ;
 eval $(source DEBBUILD; echo debname="$debname"; echo _rev="$_rev";); if [ -n "${_rev}" ]; then packagename="${debname}-${_rev}"; else packagename="${debname}"; fi
 if ! [ "$(apt-cache pkgnames | grep -x $packagename)" ]; then
 echo -e "\n\e[0;31mSomething went wrong. Package not installed.\e[0m" ; rm_db ; exit 4; else
-[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &>/dev/null
 if [ -z "$(cat $sync_path/registry | grep -x $packagename)" ]; then if [ -n "${_rev}" ]; then [ "$2" != "$packagename" ] && echo -e "\e[1m! ${2} installed as ${packagename}$clre"; fi; fi
+[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &>/dev/null
 rm_db; fi
 ;;
 -ii|--addto-registry)
@@ -128,7 +128,7 @@ tch_db
 rm -f /tmp/.debmany
 touch /tmp/.debmany
 for pkg in $(cat $sync_path/registry); do
-eval $(source $sync_path/$dirname/$pkg; echo version1="$debver-$debrel";)
+eval $(source $sync_path/$dirname/$pkg; [ -z "$debrel" ] && echo debrel=1; echo version1="$debver-$debrel";)
 version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
 if [ "$version1" != "$version2" ]; then
 echo "$pkg $version2 --> $version1" > /tmp/.debmany
