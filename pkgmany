@@ -179,7 +179,7 @@ printf "\n\e[1;32mBuilding...$clre"
 cd $curdir
 if ! [ -f "$curdir/.sources_exists" ]; then checkaddfiles; checkerror; fi
 touch $curdir/.sources_exists
-package; checkerror
-create_deb
+package; if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; purge_makedepends; exit 1; fi
+create_deb; if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; purge_makedepends; exit 1; fi
 purge_makedepends
 rm $curdir/.sources_exists
