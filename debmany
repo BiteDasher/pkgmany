@@ -1,15 +1,19 @@
 #!/bin/bash
 trapcom_() {
-rm -f /tmp/.debmany.dblock
-echo -e "\e[1;31mInterrupt signal recieved"
-exit 8
+	rm -f /tmp/.debmany.dblock
+	echo -e "\e[1;31mInterrupt signal recieved"
+	exit 8
 }
-rm_db(){
-rm -f /tmp/.debmany.dblock
+rm_db() {
+	rm -f /tmp/.debmany.dblock
 }
-tch_db(){
-if [ -f "/tmp/.debmany.dblock" ]; then echo -e "debmany already running. Use \e[1;36mdebmany -rdblock\e[0m to force remove dblock file"; exit 9; else
-touch /tmp/.debmany.dblock; fi
+tch_db() {
+	if [ -f "/tmp/.debmany.dblock" ]; then
+		echo -e "debmany already running. Use \e[1;36mdebmany -rdblock\e[0m to force remove dblock file"
+		exit 9
+	else
+		touch /tmp/.debmany.dblock
+	fi
 }
 dirname=pkgmany-storage
 many_syncurl="https://github.com/BiteDasher/pkgmany-storage.git"
@@ -17,10 +21,11 @@ sync_path="/usr/share/debmany"
 build_path="$HOME/.cache/debmany"
 [ ! -d "$sync_path" ] && sudo mkdir /usr/share/debmany
 if ! [ -f "$sync_path/registry" ]; then
-echo -e "Looks like database folder not created. Create it with \e[1;32mdebmany -c\e[0m"; fi
+	echo -e "Looks like database folder not created. Create it with \e[1;32mdebmany -c\e[0m"
+fi
 case "$1" in
--h|--help|help|w)
-cat <<EOF
+-h | --help | help | w)
+	cat << EOF
 Usage: debmany [OPTION...] ...
 debmany: creates a .deb package based on the source code or just download it from the URL (frontend for pkgmany)
 Examples:
@@ -43,113 +48,253 @@ Examples:
 	-rdblock --remove-database-lock   (DO ONLY WHEN YOU KNOW WHY) Force remove of .dblock file
 	-h --help			  show this message
 EOF
-;;
--c|--update-db)
-[ $(id -u) -ne 0 ] && { echo "This script must be run as root" ; exit 1 ; }
-tch_db
-[ ! -f "$sync_path/registry" ] && touch $sync_path/registry
-if [ -d "$sync_path/$dirname" ]; then echo -e "Database cloned. \e[1;32mupdating\e[0m..."
-cd $sync_path/$dirname && git pull --rebase origin storage || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; } ; else
-cd $sync_path && git clone -b storage $many_syncurl || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; } ; fi
-echo -e "\e[1;32mSuccess!\e[0m"; rm_db
-;;
--cc|--clean-cache)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-rm -rf $build_path/*
-;;
--i|--install)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
-[ ! "${__DEPS_INSTALL__}" ] && tch_db
-[ ! -d "$build_path" ] && mkdir -p  $build_path
-[ ! -f "$sync_path/$dirname/$2" ] && { echo -e "Package \e[1;33m$2\e[0m not exists" ; rm_db ; exit 5 ; }
-if [ -f "$build_path/$2/.sources_exists" ]; then
-echo -e "\e[0;33mSource files of this package already downloaded. Remove it [Y/n]?\e[0m"; read -rp "> " source_a; case "$source_a" in Y*|y*|"")
-rm -rf $build_path/$2
-cd $build_path; mkdir $2; cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; };; *) cd $build_path/$2 ; esac; else
-[ -d "$build_path/$2" ] && rm -rf $build_path/$2; cd $build_path; mkdir $2; cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }; fi
-eval $(source DEBBUILD; [ "$manydeps" ] && echo "internal_deps=("${manydeps[@]}")";)
-if [ "$internal_deps" ]; then echo -e "\e[0;33mdebmany dependencies found:\e[0m ${internal_deps[@]}\nInstall them? [Y/n]"
-read -rp "> " manydeps_q
-case "$manydeps_q" in
-Y*|y*|"")
-export __DEPS_INSTALL__=1
-for pkg2 in ${internal_deps[@]}; do
-if [ "$(cat $sync_path/registry | grep -x $pkg2)" ]; then : ; else
-debmany -i $pkg2; fi; done; unset __DEPS_INTALL__ ;; *) : ;; esac; fi
-pkgmany
-sudo gdebi *.deb || { echo -e "\n\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
-eval $(source DEBBUILD; echo debname="$debname"; echo _rev="$_rev";); if [ -n "${_rev}" ]; then packagename="${debname}-${_rev}"; else packagename="${debname}"; fi
-if ! [ "$(apt-cache pkgnames | grep -x $packagename)" ]; then
-echo -e "\n\e[0;31mSomething went wrong. Package not installed.\e[0m" ; rm_db ; exit 4; else
-if [ -z "$(cat $sync_path/registry | grep -x $packagename)" ]; then if [ -n "${_rev}" ]; then [ "$2" != "$packagename" ] && echo -e "\e[1m! ${2} installed as ${packagename}$clre"; fi; fi
-[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &>/dev/null
-rm_db; fi
-;;
--ii|--addto-registry)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
-[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
-tch_db
-[ ! "$(cat $sync_path/registry | grep -x $2)" ] && echo $2 >> $sync_path/registry || { echo -e "Package \e[1;33m$2\e[0m exists" ; rm_db ; exit 6 ; }
-rm_db
-;;
--l|--list)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-ls $sync_path/$dirname | cat
-;;
--rl|--registry-list)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-cat $sync_path/registry
-;;
--r|--remove)
-[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; rm_db ; exit 3 ; }
-[ ! "$(apt-cache pkgnames | grep -x $2)" ] && { echo -e "Package \e[1;33m$2\e[0m not installed" ; exit 5 ; }
-tch_db
-apt purge $2 || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; rm_db ; exit 4 ; }
-[ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry
-rm_db
-;;
--rr|--removefrom-registry)
-[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-tch_db
-[ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry || { echo -e "Package \e[1;33m$2\e[0m not found" ; rm_db ; exit 6 ; }
-rm_db
-;;
--rs|--remove-sources)
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-rm -rf $build_path/*/.sources_exists
-rm -rf $build_path/*/*-source
-;;
--u|--update)
-[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
-[ ! -d "$sync_path/$dirname" ] && { echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone" ; exit 3 ; }
-[ -z "$(cat $sync_path/registry)" ] && { echo "Nothing to check" ; exit 7 ; }
-tch_db
-rm -f /tmp/.debmany
-touch /tmp/.debmany
-for pkg in $(cat $sync_path/registry); do
-eval $(source $sync_path/$dirname/$pkg; [ ! "$debrel" ] && debrel=1; echo version1="$debver-$debrel";)
-version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
-if [ "$version1" != "$version2" ]; then
-echo "$pkg $version2 --> $version1" > /tmp/.debmany
-fi; done
-if [ -z "$(cat /tmp/.debmany)" ]; then echo "Nothing to update."; rm_db; else
-cat /tmp/.debmany; fi; rm_db
-;;
--redb|--recreate-database)
-[ $(id -u) -ne 0 ] && { echo "This option must be run as root" ; exit 1 ; }
-trap true SIGINT
-trap true SIGTERM
-mv -f $sync_path/registry /tmp/.registry
-rm -rf $sync_path/* $sync_path/.git
-cd $sync_path && git clone -b storage $many_syncurl || { echo -e "\e[0;31mSomething went wrong...\e[0m" ; exit 4 ; }
-mv -f /tmp/.registry $sync_path/registry; chmod 777 $sync_path/registry; echo -e "\e[1;32mSuccess!\e[0m"
-;;
--rdblock|--remove-database-lock)
-rm_db
-;;
+	;;
+-c | --update-db)
+	[ $(id -u) -ne 0 ] && {
+		echo "This script must be run as root"
+		exit 1
+	}
+	tch_db
+	[ ! -f "$sync_path/registry" ] && touch $sync_path/registry
+	if [ -d "$sync_path/$dirname" ]; then
+		echo -e "Database cloned. \e[1;32mupdating\e[0m..."
+		cd $sync_path/$dirname && git pull --rebase origin storage || {
+			echo -e "\e[0;31mSomething went wrong...\e[0m"
+			rm_db
+			exit 4
+		}
+	else
+		cd $sync_path && git clone -b storage $many_syncurl || {
+			echo -e "\e[0;31mSomething went wrong...\e[0m"
+			rm_db
+			exit 4
+		}
+	fi
+	echo -e "\e[1;32mSuccess!\e[0m"
+	rm_db
+	;;
+-cc | --clean-cache)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	rm -rf $build_path/*
+	;;
+-i | --install)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		rm_db
+		exit 3
+	}
+	[ ! "${__DEPS_INSTALL__}" ] && tch_db
+	[ ! -d "$build_path" ] && mkdir -p $build_path
+	[ ! -f "$sync_path/$dirname/$2" ] && {
+		echo -e "Package \e[1;33m$2\e[0m not exists"
+		rm_db
+		exit 5
+	}
+	if [ -f "$build_path/$2/.sources_exists" ]; then
+		echo -e "\e[0;33mSource files of this package already downloaded. Remove it [Y/n]?\e[0m"
+		read -rp "> " source_a
+		case "$source_a" in Y* | y* | "")
+			rm -rf $build_path/$2
+			cd $build_path
+			mkdir $2
+			cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || {
+				echo -e "\e[0;31mSomething went wrong...\e[0m"
+				rm_db
+				exit 4
+			}
+			;;
+		*) cd $build_path/$2 ;; esac
+	else
+		[ -d "$build_path/$2" ] && rm -rf $build_path/$2
+		cd $build_path
+		mkdir $2
+		cd $2 && cp $sync_path/$dirname/$2 ./DEBBUILD || {
+			echo -e "\e[0;31mSomething went wrong...\e[0m"
+			rm_db
+			exit 4
+		}
+	fi
+	eval $(
+		source DEBBUILD
+		[ "$manydeps" ] && echo "internal_deps=("${manydeps[@]}")"
+	)
+	if [ "$internal_deps" ]; then
+		echo -e "\e[0;33mdebmany dependencies found:\e[0m ${internal_deps[@]}\nInstall them? [Y/n]"
+		read -rp "> " manydeps_q
+		case "$manydeps_q" in
+		Y* | y* | "")
+			export __DEPS_INSTALL__=1
+			for pkg2 in ${internal_deps[@]}; do
+				if [ "$(cat $sync_path/registry | grep -x $pkg2)" ]; then :; else
+					debmany -i $pkg2
+				fi
+			done
+			unset __DEPS_INTALL__
+			;;
+		*) : ;; esac
+	fi
+	pkgmany
+	sudo gdebi *.deb || {
+		echo -e "\n\e[0;31mSomething went wrong...\e[0m"
+		rm_db
+		exit 4
+	}
+	eval $(
+		source DEBBUILD
+		echo debname="$debname"
+		echo _rev="$_rev"
+	)
+	if [ -n "${_rev}" ]; then packagename="${debname}-${_rev}"; else packagename="${debname}"; fi
+	if ! [ "$(apt-cache pkgnames | grep -x $packagename)" ]; then
+		echo -e "\n\e[0;31mSomething went wrong. Package not installed.\e[0m"
+		rm_db
+		exit 4
+	else
+		if [ -z "$(cat $sync_path/registry | grep -x $packagename)" ]; then if [ -n "${_rev}" ]; then [ "$2" != "$packagename" ] && echo -e "\e[1m! ${2} installed as ${packagename}$clre"; fi; fi
+		[ ! "$(cat $sync_path/registry | grep -x $packagename)" ] && echo $packagename | sudo tee -a $sync_path/registry &> /dev/null
+		rm_db
+	fi
+	;;
+-ii | --addto-registry)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		rm_db
+		exit 3
+	}
+	[ $(id -u) -ne 0 ] && {
+		echo "This option must be run as root"
+		exit 1
+	}
+	tch_db
+	[ ! "$(cat $sync_path/registry | grep -x $2)" ] && echo $2 >> $sync_path/registry || {
+		echo -e "Package \e[1;33m$2\e[0m exists"
+		rm_db
+		exit 6
+	}
+	rm_db
+	;;
+-l | --list)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	ls $sync_path/$dirname | cat
+	;;
+-rl | --registry-list)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	cat $sync_path/registry
+	;;
+-r | --remove)
+	[ $(id -u) -ne 0 ] && {
+		echo "This option must be run as root"
+		exit 1
+	}
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		rm_db
+		exit 3
+	}
+	[ ! "$(apt-cache pkgnames | grep -x $2)" ] && {
+		echo -e "Package \e[1;33m$2\e[0m not installed"
+		exit 5
+	}
+	tch_db
+	apt purge $2 || {
+		echo -e "\e[0;31mSomething went wrong...\e[0m"
+		rm_db
+		exit 4
+	}
+	[ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry
+	rm_db
+	;;
+-rr | --removefrom-registry)
+	[ $(id -u) -ne 0 ] && {
+		echo "This option must be run as root"
+		exit 1
+	}
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	tch_db
+	[ "$(cat $sync_path/registry | grep -x $2)" ] && sed "/$2/d" -i $sync_path/registry || {
+		echo -e "Package \e[1;33m$2\e[0m not found"
+		rm_db
+		exit 6
+	}
+	rm_db
+	;;
+-rs | --remove-sources)
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	rm -rf $build_path/*/.sources_exists
+	rm -rf $build_path/*/*-source
+	;;
+-u | --update)
+	[ $(id -u) -ne 0 ] && {
+		echo "This option must be run as root"
+		exit 1
+	}
+	[ ! -d "$sync_path/$dirname" ] && {
+		echo -e "Database not cloned. Use \e[1;32mdebmany -c\e[0m to clone"
+		exit 3
+	}
+	[ -z "$(cat $sync_path/registry)" ] && {
+		echo "Nothing to check"
+		exit 7
+	}
+	tch_db
+	rm -f /tmp/.debmany
+	touch /tmp/.debmany
+	for pkg in $(cat $sync_path/registry); do
+		eval $(
+			source $sync_path/$dirname/$pkg
+			[ ! "$debrel" ] && debrel=1
+			echo version1="$debver-$debrel"
+		)
+		version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
+		if [ "$version1" != "$version2" ]; then
+			echo "$pkg $version2 --> $version1" > /tmp/.debmany
+		fi
+	done
+	if [ -z "$(cat /tmp/.debmany)" ]; then
+		echo "Nothing to update."
+		rm_db
+	else
+		cat /tmp/.debmany
+	fi
+	rm_db
+	;;
+-redb | --recreate-database)
+	[ $(id -u) -ne 0 ] && {
+		echo "This option must be run as root"
+		exit 1
+	}
+	trap true SIGINT
+	trap true SIGTERM
+	mv -f $sync_path/registry /tmp/.registry
+	rm -rf $sync_path/* $sync_path/.git
+	cd $sync_path && git clone -b storage $many_syncurl || {
+		echo -e "\e[0;31mSomething went wrong...\e[0m"
+		exit 4
+	}
+	mv -f /tmp/.registry $sync_path/registry
+	chmod 777 $sync_path/registry
+	echo -e "\e[1;32mSuccess!\e[0m"
+	;;
+-rdblock | --remove-database-lock)
+	rm_db
+	;;
 *)
-echo "Unknown argument. Try debmany -h for help"; exit 2
-;;
+	echo "Unknown argument. Try debmany -h for help"
+	exit 2
+	;;
 esac

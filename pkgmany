@@ -1,53 +1,64 @@
 #!/bin/bash
 purge_makedepends() {
-if [ -f ${curdir}/.makedeps ]; then
-printf "\n\e[1;33mRemove build dependencies?(They are not needed after building the package.)\e[0m [Y/n]"
-read -rp "> " mdquest
-case $mdquest in
-Y*|y*|"")
-sudo apt purge $(cat .makedeps | tr "\n" " ")
-rm .makedeps
-;;
-*)
-:
-;; esac; fi
+	if [ -f ${curdir}/.makedeps ]; then
+		printf "\n\e[1;33mRemove build dependencies?(They are not needed after building the package.)\e[0m [Y/n]"
+		read -rp "> " mdquest
+		case $mdquest in
+		Y* | y* | "")
+			sudo apt purge $(cat .makedeps | tr "\n" " ")
+			rm .makedeps
+			;;
+		*)
+			:
+			;;
+		esac
+	fi
 }
 checkaddfiles() {
-if [ "$(declare -f addfiles &>/dev/null; echo $?)" == 0 ]; then
-printf "\n\e[1;33mcreating additional files...$clre"
-addfiles; fi
+	if [ "$(
+		declare -f addfiles &> /dev/null
+		echo $?
+	)" == 0 ]; then
+		printf "\n\e[1;33mcreating additional files...$clre"
+		addfiles
+	fi
 }
 unpack() {
-  tar -xf $srcdir/* -C $srcdir/
+	tar -xf $srcdir/* -C $srcdir/
 }
 create_deb() {
-printf "\n\e[1;32mCreating .deb package...$clre"
-cd $pkgdir
-mkdir DEBIAN
-cd DEBIAN
-if [ "$(declare -f newver &>/dev/null; echo $?)" == 0 ]; then
-debver="$(newver)"; fi
-if [ "${_rev}" ]; then debname="${debname}-${_rev}"; fi
-echo "Package: $debname" >> control
-echo "Version: $debver-$debrel" >> control
-echo "Architecture: $debarch" >> control
-[ "$debpri" ] && echo "Priority: $debpri" >> control
-[ "$debsec" ] && echo "Section: $debsec" >> control
-[ "$debrec" ] && echo "Reccomends: $debrec" >> control
-[ "$debsug" ] && echo "Suggests: $debsug" >> control
-[ "$debcon" ] && echo "Conflicts: $debcon" >> control
-[ "$debbrk" ] && echo "Breaks: $debbrk" >> control
-[ "$debprv" ] && echo "Provides: $debprv" >> control
-[ "$debrep" ] && echo "Replaces: $debrep" >> control
-echo "Depends: $debdeps" >> control
-echo "Homepage: $url" >> control
-echo "Maintainer: $maintainer" >> control
-echo "Description: $debdesc" >> control
-[ "$debpostinst" ] && echo "$debpostinst" > postinst
-[ "$debprerm" ] && echo "$debprerm" > prerm
-[ "$debconffiles" ] && echo "$debconffiles" > conffiles
-cd .. && find . -type f ! -regex '.*.hg.*' ! -regex '.*?debian-binary.*' ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums; cd DEBIAN
-cat <<EOF > copyright
+	printf "\n\e[1;32mCreating .deb package...$clre"
+	cd $pkgdir
+	mkdir DEBIAN
+	cd DEBIAN
+	if [ "$(
+		declare -f newver &> /dev/null
+		echo $?
+	)" == 0 ]; then
+		debver="$(newver)"
+	fi
+	if [ "${_rev}" ]; then debname="${debname}-${_rev}"; fi
+	echo "Package: $debname" >> control
+	echo "Version: $debver-$debrel" >> control
+	echo "Architecture: $debarch" >> control
+	[ "$debpri" ] && echo "Priority: $debpri" >> control
+	[ "$debsec" ] && echo "Section: $debsec" >> control
+	[ "$debrec" ] && echo "Reccomends: $debrec" >> control
+	[ "$debsug" ] && echo "Suggests: $debsug" >> control
+	[ "$debcon" ] && echo "Conflicts: $debcon" >> control
+	[ "$debbrk" ] && echo "Breaks: $debbrk" >> control
+	[ "$debprv" ] && echo "Provides: $debprv" >> control
+	[ "$debrep" ] && echo "Replaces: $debrep" >> control
+	echo "Depends: $debdeps" >> control
+	echo "Homepage: $url" >> control
+	echo "Maintainer: $maintainer" >> control
+	echo "Description: $debdesc" >> control
+	[ "$debpostinst" ] && echo "$debpostinst" > postinst
+	[ "$debprerm" ] && echo "$debprerm" > prerm
+	[ "$debconffiles" ] && echo "$debconffiles" > conffiles
+	cd .. && find . -type f ! -regex '.*.hg.*' ! -regex '.*?debian-binary.*' ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums
+	cd DEBIAN
+	cat << EOF > copyright
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: $debname
 Upstream-Contact: $author
@@ -57,24 +68,33 @@ Files: *
 Copyright: $year $author
 License: "${license}"
 EOF
-printf "  \e[0;32mok"
-printf "\n\e[1;33mBuilding \e[0;36m$debname$clre \e[1;33mpackage using dpkg-deb...$clre"
-cd $curdir
-dpkg-deb -b "$pkgdir" "$debname".deb; checkerror; printf "\n"
+	printf "  \e[0;32mok"
+	printf "\n\e[1;33mBuilding \e[0;36m$debname$clre \e[1;33mpackage using dpkg-deb...$clre"
+	cd $curdir
+	dpkg-deb -b "$pkgdir" "$debname".deb
+	checkerror
+	printf "\n"
 }
 checkerror() {
-if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; exit 1; else
-printf " \e[0;32mok\e[0m"; fi
+	if [ "$?" != 0 ]; then
+		printf " \e[1;31merror$clre"
+		exit 1
+	else
+		printf " \e[0;32mok\e[0m"
+	fi
 }
 clre="\e[0m"
 trapcom() {
-echo -e "\033[1;31mInterrupt signal recieved."; exit 5
+	echo -e "\033[1;31mInterrupt signal recieved."
+	exit 5
 }
 trap trapcom SIGTERM
 trap trapcom SIGINT
-if [ "$1" ]; then pkgmanyone=1; case $1 in
--h|--help|help|w)
-cat <<EOF
+if [ "$1" ]; then
+	pkgmanyone=1
+	case $1 in
+	-h | --help | help | w)
+		cat << EOF
 Usage: pkgmany [OPTION...] ...
 pkgmany: creates a .deb package based on the source code or just download it from the URL
 Examples:
@@ -89,97 +109,194 @@ Examples:
 	-c  --create		only create .deb package
 	-a  --all		create .deb package and install it
 EOF
-;;
--po|--package-only)
-[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
-source DEBBUILD
-curdir="$(pwd)"
-pkgdir="$(pwd)/${debname}"
-[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
-srcdir="$(pwd)/${debname}-source"
-[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
-checkaddfiles; checkerror; package; checkerror
-;;
--u|--unpack)
-[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
-source DEBBUILD
-curdir="$(pwd)"
-pkgdir="$(pwd)/${debname}"
-[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
-srcdir="$(pwd)/${debname}-source"
-[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
-unpack; checkerror
-;;
--c|--create)
-[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
-source DEBBUILD
-curdir="$(pwd)"
-pkgdir="$(pwd)/${debname}"
-[ ! -d "$pkgdir" ] && { printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre" ; exit 1 ; }
-srcdir="$(pwd)/${debname}-source"
-[ ! -d "$srcdir" ] && { printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre" ; exit 1 ; }
-rm -rf $pkgdir/*
-create_deb
-purge_makedepends
-;;
--a|--all)
-unset pkgmanyone
-;; esac; fi
+		;;
+	-po | --package-only)
+		[ ! -f DEBBUILD ] && {
+			printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre"
+			exit 1
+		}
+		source DEBBUILD
+		curdir="$(pwd)"
+		pkgdir="$(pwd)/${debname}"
+		[ ! -d "$pkgdir" ] && {
+			printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre"
+			exit 1
+		}
+		srcdir="$(pwd)/${debname}-source"
+		[ ! -d "$srcdir" ] && {
+			printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre"
+			exit 1
+		}
+		checkaddfiles
+		checkerror
+		package
+		checkerror
+		;;
+	-u | --unpack)
+		[ ! -f DEBBUILD ] && {
+			printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre"
+			exit 1
+		}
+		source DEBBUILD
+		curdir="$(pwd)"
+		pkgdir="$(pwd)/${debname}"
+		[ ! -d "$pkgdir" ] && {
+			printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre"
+			exit 1
+		}
+		srcdir="$(pwd)/${debname}-source"
+		[ ! -d "$srcdir" ] && {
+			printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre"
+			exit 1
+		}
+		unpack
+		checkerror
+		;;
+	-c | --create)
+		[ ! -f DEBBUILD ] && {
+			printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre"
+			exit 1
+		}
+		source DEBBUILD
+		curdir="$(pwd)"
+		pkgdir="$(pwd)/${debname}"
+		[ ! -d "$pkgdir" ] && {
+			printf "\n\e[0;36m\$pkgdir\e[1;32m not found$clre"
+			exit 1
+		}
+		srcdir="$(pwd)/${debname}-source"
+		[ ! -d "$srcdir" ] && {
+			printf "\n\e[0;36m\$srcdir\e[1;32m not found$clre"
+			exit 1
+		}
+		rm -rf $pkgdir/*
+		create_deb
+		purge_makedepends
+		;;
+	-a | --all)
+		unset pkgmanyone
+		;;
+	esac
+fi
 [ "$pkgmanyone" ] && exit 0
 pkgmanyver=1.0
 echo -e "Starting pkgmany \e[0;36m$pkgmanyver$clre"
-[ ! -f DEBBUILD ] && { printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre" ; exit 1 ; }
+[ ! -f DEBBUILD ] && {
+	printf "\n\e[0;31mDEBBUILD not found.\e[0m Aborting...\n$clre"
+	exit 1
+}
 source DEBBUILD
 curdir="$(pwd)"
 pkgdir="$(pwd)/${debname}"
-if [ -d "$pkgdir" ]; then printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"; rm -rf $pkgdir
-checkerror; fi
+if [ -d "$pkgdir" ]; then
+	printf "\n\e[1;32mRemoving $clre${pkgdir}\e[1;32m...$clre"
+	rm -rf $pkgdir
+	checkerror
+fi
 mkdir $pkgdir
 srcdir="$(pwd)/${debname}-source"
 if [ -f "$(pwd)/.sources_exists" ]; then
-printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"; else
-if [ -d "$srcdir" ]; then printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"; rm -rf $srcdir
-checkerror; fi
-mkdir $srcdir; fi
-[ -f *.deb ] && { printf "\n\e[1;32mMoving .deb in .backup$clre" ; [ -d .backup ] && rm -rf .backup; mkdir .backup ; mv *.deb .backup/ ; checkerror ; }
+	printf "\n\e[1;32mSources downloaded. \e[1;34mContinue...$clre"
+else
+	if [ -d "$srcdir" ]; then
+		printf "\n\e[1;32mRemoving $clre${srcdir}\e[1;32m...$clre"
+		rm -rf $srcdir
+		checkerror
+	fi
+	mkdir $srcdir
+fi
+[ -f *.deb ] && {
+	printf "\n\e[1;32mMoving .deb in .backup$clre"
+	[ -d .backup ] && rm -rf .backup
+	mkdir .backup
+	mv *.deb .backup/
+	checkerror
+}
 ###
 if [ "$makedepends" ]; then
-printf "\n\e[1;32mFound \e[0;36m\$makedepends\e[1;32m. Checking...$clre\n"
-dependerrARRAY=()
-rm -f .makedeps
-for pkg in ${makedepends[@]}; do
-if ! [ "$(apt-cache pkgnames | grep -x ${pkg})" ]; then
-printf "\n$clre$pkg\e[1;31m not found$clre"; dependerrARRAY+=(${pkg})
-else 
-[ ! "$(apt-mark showmanual | grep -x $pkg)" ] && echo $pkg >> .makedeps ; fi; done; fi
-if [ "$dependerrARRAY" ]; then echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"; rm .makedeps; exit 2; else [ -f .makedeps ] && { sudo apt install $(cat .makedeps | tr "\n" " ") ; printf " \e[0;32mok$clre" ; }; fi
+	printf "\n\e[1;32mFound \e[0;36m\$makedepends\e[1;32m. Checking...$clre\n"
+	dependerrARRAY=()
+	rm -f .makedeps
+	for pkg in ${makedepends[@]}; do
+		if ! [ "$(apt-cache pkgnames | grep -x ${pkg})" ]; then
+			printf "\n$clre$pkg\e[1;31m not found$clre"
+			dependerrARRAY+=(${pkg})
+		else
+			[ ! "$(apt-mark showmanual | grep -x $pkg)" ] && echo $pkg >> .makedeps
+		fi
+	done
+fi
+if [ "$dependerrARRAY" ]; then
+	echo -e " \e[1;31m\nerror$clre \e[0;31mFollowing dependencies not found at repositories:$clre ${dependerrARRAY[@]}"
+	rm .makedeps
+	exit 2
+else [ -f .makedeps ] && {
+	sudo apt install $(cat .makedeps | tr "\n" " ")
+	printf " \e[0;32mok$clre"
+}; fi
 if ! [ -f "$(pwd)/.sources_exists" ]; then
-printf "\n\e[1;32mDownloading sources...$clre\n"
-for source_get in ${sources[@]}; do
-	source_get_mtd="$(echo $source_get | cut -d":" -f1)"
-	case "${source_get_mtd}" in
-	wget) wget -O $srcdir/$(echo $source_get | cut -d":" -f2) $(echo $source_get | cut -d":" -f3-) -q --show-progress; checkerror ;;
-	curl) cd $srcdir && curl -L -o $(echo $source_get | cut -d":" -f2) --progress-bar $(echo $source_get | cut -d":" -f3-); checkerror ;;
-	git) echo; cd $srcdir && git clone $(echo $source_get | cut -d":" -f3-) $(echo $source_get | cut -d":" -f2) 1>/dev/null; checkerror ;;
-	esac; done
-if [ "$sha256sums" ]; then printf "\n\e[1;32mChecking sha256sums...$clre"; fi
-for ssum in ${!sha256sums[*]}; do
-	if [ "${sha256sums[$ssum]}" == SKIP ]; then
-	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)... \e[1;33mskip$clre"; else
-	printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)..."
-	if [ "$(sha256sum $srcdir/$(echo ${sources[$ssum]} | cut -d":" -f2) | cut -d" " -f1)" != ${sha256sums[$ssum]} ]; then printf "\e[1;31m error$clre\n"; exit 1; else printf "\e[0;32m ok$clre"; fi; fi; done; fi
+	printf "\n\e[1;32mDownloading sources...$clre\n"
+	for source_get in ${sources[@]}; do
+		source_get_mtd="$(echo $source_get | cut -d":" -f1)"
+		case "${source_get_mtd}" in
+		wget)
+			wget -O $srcdir/$(echo $source_get | cut -d":" -f2) $(echo $source_get | cut -d":" -f3-) -q --show-progress
+			checkerror
+			;;
+		curl)
+			cd $srcdir && curl -L -o $(echo $source_get | cut -d":" -f2) --progress-bar $(echo $source_get | cut -d":" -f3-)
+			checkerror
+			;;
+		git)
+			echo
+			cd $srcdir && git clone $(echo $source_get | cut -d":" -f3-) $(echo $source_get | cut -d":" -f2) 1> /dev/null
+			checkerror
+			;;
+		esac
+	done
+	if [ "$sha256sums" ]; then printf "\n\e[1;32mChecking sha256sums...$clre"; fi
+	for ssum in ${!sha256sums[*]}; do
+		if [ "${sha256sums[$ssum]}" == SKIP ]; then
+			printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)... \e[1;33mskip$clre"
+		else
+			printf "\n\e[1;32mchecking$clre $(echo ${sources[$ssum]} | cut -d":" -f2)..."
+			if [ "$(sha256sum $srcdir/$(echo ${sources[$ssum]} | cut -d":" -f2) | cut -d" " -f1)" != ${sha256sums[$ssum]} ]; then
+				printf "\e[1;31m error$clre\n"
+				exit 1
+			else printf "\e[0;32m ok$clre"; fi
+		fi
+	done
+fi
 if [ "$debpkg" ]; then
-printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
-mv $srcdir/* $curdir/; checkerror; exit 0; fi
+	printf "\n\e[1;36mMoving ${clre}.deb$clre \e[1;36mpackage...$clre"
+	mv $srcdir/* $curdir/
+	checkerror
+	exit 0
+fi
 if ! [ -f "$curdir/.sources_exists" ]; then
-printf "\n\e[1;32mUnpacking sources..$clre."
-unpack; checkerror; fi
+	printf "\n\e[1;32mUnpacking sources..$clre."
+	unpack
+	checkerror
+fi
 printf "\n\e[1;32mBuilding...$clre"
 #if [ -f "$curdir/.sources_exists" ]; then [ -n "$(ls $curdir -I DEBBUILD -I ${debname} -I ${debname}-source)" ] && rm $(ls $curdir -I DEBBUILD -I ${debname}-source -I ${debname}); checkaddfiles; checkerror; else checkaddfiles; checkerror; fi
 cd $curdir
-if ! [ -f "$curdir/.sources_exists" ]; then checkaddfiles; checkerror; fi
+if ! [ -f "$curdir/.sources_exists" ]; then
+	checkaddfiles
+	checkerror
+fi
 touch $curdir/.sources_exists
-package; if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; purge_makedepends; exit 1; fi
-create_deb; if [ "$?" != 0 ]; then printf " \e[1;31merror$clre"; purge_makedepends; exit 1; fi
+package
+if [ "$?" != 0 ]; then
+	printf " \e[1;31merror$clre"
+	purge_makedepends
+	exit 1
+fi
+create_deb
+if [ "$?" != 0 ]; then
+	printf " \e[1;31merror$clre"
+	purge_makedepends
+	exit 1
+fi
 purge_makedepends
 rm $curdir/.sources_exists
