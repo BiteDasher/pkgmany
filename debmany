@@ -260,7 +260,7 @@ EOF
 			[ ! "$debrel" ] && debrel=1
 			echo version1="$debver-$debrel"
 		)
-		version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-100)"
+		version2="$(apt-cache show $pkg | grep -E "Version:" | head -n 1 | cut -c10-)"
 		if [ "$version1" != "$version2" ]; then
 			echo "$pkg $version2 --> $version1" > /tmp/.debmany
 		fi
